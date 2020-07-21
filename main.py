@@ -29,9 +29,9 @@ class Reader(tk.Frame):
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
         self.imageIndex = 0
 
-        canvas = tk.Canvas(self.parent)
+        self.canvas = tk.Canvas(self.parent)
         # scroll_y = tk.Scrollbar(self.parent, orient="vertical", command=canvas.yview)
-        frame = tk.Frame(canvas)
+        frame = tk.Frame(self.canvas)
 
         # See if we can read some images from here, eh?
         mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
@@ -41,19 +41,24 @@ class Reader(tk.Frame):
         self.images = [None] * len(mangaFiles)
         print(mangaFiles)
 
-        self.image = self._getMangaImage(self.imageIndex)
-        im = canvas.create_image(0, 0, image=self.image, anchor='nw')
+        self._loadImage()
 
         self.pagesLabel = tk.Label(frame, text=self._createPagesText())
         self.pagesLabel.pack()
 
 
-        canvas.create_window(0, 0, anchor='nw', window=frame)
-        canvas.bind_all("<MouseWheel>", lambda event: canvas.move(im, 0, event.delta * self.SCROLL_SPEED))
+        self.canvas.create_window(0, 0, anchor='nw', window=frame)
+        self.canvas.bind_all("<MouseWheel>", lambda event: self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED))
 
-        canvas.update_idletasks()
+        self.canvas.update_idletasks()
 
-        canvas.pack(fill='both', expand=True, side='left')
+        self.canvas.pack(fill='both', expand=True, side='left')
+
+    
+    def _loadImage(self, index=0):
+        image = self._getMangaImage(index)
+        width = self.parent.winfo_width()
+        self.image = self.canvas.create_image(width/2, 0, image=image, anchor='n')
 
     
     def _getMangaImage(self, index):
