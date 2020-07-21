@@ -3,8 +3,60 @@ from tkinter import messagebox
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import os
+from os import listdir
+from os.path import isfile, join
+import fnmatch
 import sys
 
+
+
+class Reader(tk.Frame):
+    IMAGE_HEIGHT_SCALE = 0.9
+
+    def __init__(self, parent, *args, **kwargs):
+        try:
+            self.imageDir = kwargs.pop('imageDir', None)
+        except Exception as e:
+            print(str(e))
+            exit()
+
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+
+        # get some routine initialization out of the way
+        self.parent = parent
+        self.parentHeight = parent.winfo_screenheight()
+        self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
+        self.imageIndex = 0
+
+        # See if we can read some images from here, eh?
+        mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
+        mangaFiles.sort()
+
+        self.mangaFiles = mangaFiles
+        self.images = [None] * len(mangaFiles)
+        print(mangaFiles)
+
+        self.imageLabel = tk.Label(self.parent, image=self._getMangaImage(self.imageIndex))
+        self.imageLabel.image = self._getMangaImage(self.imageIndex)
+        self.imageLabel.pack()
+
+        self.pagesLabel = tk.Label(self.parent, text=self._createPagesText())
+        self.pagesLabel.pack()
+
+    
+    def _getMangaImage(self, index):
+        if not self.images[index]:
+            # Load the image, it's not cached
+            imageName = self.mangaFiles[index]
+            load = Image.open(join(self.imageDir, imageName))
+            # load.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
+            self.images[index] = ImageTk.PhotoImage(load)
+        
+        return self.images[index]
+
+
+    def _createPagesText(self):
+        return f"{self.imageIndex + 1} / {len(self.mangaFiles)}"
 
 
 class Logo(tk.Frame):
@@ -100,6 +152,10 @@ def initSelectGUI(root):
     logo.pack()
 
 
+def initReader(root, imageDir):
+    reader = Reader(root, imageDir=imageDir)
+    reader.pack()
+
 KEY_SHIFT_Q = 81
 KEY_LEFT = 8124162
 KEY_RIGHT = 8189699
@@ -115,7 +171,8 @@ root.title("Manga Reader")
 root.attributes('-fullscreen', True)  
 
 # Add the initial selection widgets
-initSelectGUI(root)
+# initSelectGUI(root)
+initReader(root, os.path.join('res', 'demo'))
 
 
 # Get rocking!
