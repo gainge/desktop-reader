@@ -90,6 +90,16 @@ def onSelectCallback():
 
 
 
+def initSelectGUI(root):
+    # Wire up the select section guy
+    select = DirSelect(root, onDirectorySelect=onSelectCallback)
+    select.pack()
+
+    # Add the logo :)
+    logo = Logo(root, path=os.path.join(IMG_PATH, IMG_FILE))
+    logo.pack()
+
+
 KEY_SHIFT_Q = 81
 KEY_LEFT = 8124162
 KEY_RIGHT = 8189699
@@ -99,22 +109,17 @@ KEY_DOWN = 8255233
 IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
 
-master = tk.Tk()
-master.title("Manga Reader")
-master.attributes('-fullscreen', True)  
+# Set up the root
+root = tk.Tk()
+root.title("Manga Reader")
+root.attributes('-fullscreen', True)  
+
+# Add the initial selection widgets
+initSelectGUI(root)
 
 
-
-
-# Wire up the select section guy
-select = DirSelect(master, onDirectorySelect=onSelectCallback)
-select.pack()
-
-# Add the logo :)
-logo = Logo(master, path=os.path.join(IMG_PATH, IMG_FILE))
-logo.pack()
-
-master.mainloop()
+# Get rocking!
+root.mainloop()
 
 
 
