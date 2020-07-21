@@ -49,10 +49,29 @@ class Reader(tk.Frame):
 
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
         self.canvas.bind_all("<MouseWheel>", lambda event: self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED))
+        self.canvas.bind_all("<Key>", self.keyPress)
 
         self.canvas.update_idletasks()
 
         self.canvas.pack(fill='both', expand=True, side='left')
+
+    def keyPress(self, e):
+        indexChanged = False
+
+
+        if (e.keycode == KEY_LEFT and self.imageIndex < len(self.mangaFiles) - 1):
+            # increment our selection
+            self.imageIndex = self.imageIndex + 1
+            indexChanged = True
+        elif (e.keycode == KEY_RIGHT and self.imageIndex > 0):
+            # decrement our selection
+            self.imageIndex = self.imageIndex - 1
+            indexChanged = True
+
+        if indexChanged:
+            self.canvas.delete(self.image)
+            self._loadImage(self.imageIndex)
+            self.pagesLabel['text'] = self._createPagesText()
 
     
     def _loadImage(self, index=0):
