@@ -11,7 +11,7 @@ import sys
 
 
 class Reader(tk.Frame):
-    IMAGE_HEIGHT_SCALE = 0.9
+    IMAGE_HEIGHT_SCALE = 1.8
     SCROLL_SPEED = 10
 
     def __init__(self, parent, *args, **kwargs):
@@ -41,7 +41,7 @@ class Reader(tk.Frame):
         self.images = [None] * len(mangaFiles)
         print(mangaFiles)
 
-        self._loadImage()
+        self.image = self._loadImage()
 
         self.pagesLabel = tk.Label(frame, text=self._createPagesText())
         self.pagesLabel.pack()
@@ -56,28 +56,42 @@ class Reader(tk.Frame):
         self.canvas.pack(fill='both', expand=True, side='left')
 
     def keyPress(self, e):
-        indexChanged = False
+        if e.keycode == KEY_LEFT:
+            self.nextImage()
+        elif e.keycode == KEY_RIGHT:
+            self.prevImage()
+
+    
+    def nextImage(self):
+        if self.imageIndex >= len(self.mangaFiles):
+            return
+        
+        self.changePage(self.imageIndex + 1)
 
 
-        if (e.keycode == KEY_LEFT and self.imageIndex < len(self.mangaFiles) - 1):
-            # increment our selection
-            self.imageIndex = self.imageIndex + 1
-            indexChanged = True
-        elif (e.keycode == KEY_RIGHT and self.imageIndex > 0):
-            # decrement our selection
-            self.imageIndex = self.imageIndex - 1
-            indexChanged = True
+    def prevImage(self):
+        if self.imageIndex <= 0:
+            return
+        
+        self.changePage(self.imageIndex - 1)
 
-        if indexChanged:
-            self.canvas.delete(self.image)
-            self._loadImage(self.imageIndex)
-            self.pagesLabel['text'] = self._createPagesText()
+    def reloadImage(self):
+        self.changePage(self.imageIndex)
+
+    def changePage(self, newIndex):
+        # Delete the current image
+        if (self.image): self.canvas.delete(self.image)
+
+        # Load the new index
+        self.imageIndex = newIndex
+        self.image = self._loadImage(newIndex) # display new image and delete
+        self.pagesLabel['text'] = self._createPagesText()
 
     
     def _loadImage(self, index=0):
         image = self._getMangaImage(index)
         width = self.parent.winfo_width()
-        self.image = self.canvas.create_image(width/2, 0, image=image, anchor='n')
+        return self.canvas.create_image(width/2, 0, image=image, anchor='n')
 
     
     def _getMangaImage(self, index):
@@ -85,7 +99,7 @@ class Reader(tk.Frame):
             # Load the image, it's not cached
             imageName = self.mangaFiles[index]
             load = Image.open(join(self.imageDir, imageName))
-            # load.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
+            load.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
             self.images[index] = ImageTk.PhotoImage(load)
         
         return self.images[index]
