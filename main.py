@@ -80,7 +80,7 @@ class Reader(tk.Frame):
             return
         
         # Initialize our data members required for reading
-        self.initData(directory)
+        self.initData(newDirectory)
 
         # Update the UI to reflect the new data
         self.image = self._loadImage()
