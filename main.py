@@ -157,7 +157,7 @@ class DirSelect(tk.Frame):
         self.selectButton.pack()
 
         # Directory Label
-        self.directoryLabel = tk.Label(self.root, text='[No Directory Selected]')
+        self.directoryLabel = tk.Label(self.root, text='[No Directory Selected]', wraplength=170)
         self.directoryLabel.pack()
 
         # Start Reading Button
@@ -180,7 +180,7 @@ class DirSelect(tk.Frame):
         if (self.mangaDir and os.path.isdir(self.mangaDir) and os.path.exists(self.mangaDir)):
             print('Good to start reading from: ' + str(self.mangaDir))
             print('executing read callback!')
-            self.onDirectorySelect()
+            self.onDirectorySelect(self.mangaDir)
         else:
             messagebox.showerror("Error", "Please select a manga directory")
 
@@ -191,10 +191,14 @@ class DirSelect(tk.Frame):
 
 
 
-def onSelectCallback():
+def onSelectCallback(mangaDir):
+    global reader
     print('this is where we\'d swap some stuff around')
 
 
+def removeWidget(widget):
+    if widget and widget.pack_forget:
+        widget.pack_forget()
 
 
 def initRoot():
@@ -209,18 +213,23 @@ def initRoot():
 
 
 def initSelectGUI(root, directory='~'):
+    guiParent = tk.Frame(root)
+
     # Wire up the select section guy
-    select = DirSelect(root, onDirectorySelect=onSelectCallback, directory=directory)
+    select = DirSelect(guiParent, onDirectorySelect=onSelectCallback, directory=directory)
     select.pack()
 
     # Add the logo :)
-    logo = Logo(root, path=os.path.join(IMG_PATH, IMG_FILE))
+    logo = Logo(guiParent, path=os.path.join(IMG_PATH, IMG_FILE))
     logo.pack()
+
+    return guiParent
 
 
 def initReader(root, imageDir):
     reader = Reader(root, imageDir=imageDir)
-    reader.pack()
+    
+    return reader
 
 
 
@@ -273,9 +282,13 @@ print(DEFAULT_DIRECTORY)
 # Set up the root
 root = initRoot()  
 
-# Add the initial selection widgets
-initSelectGUI(root, directory=DEFAULT_DIRECTORY)
-# initReader(root, os.path.join('res', 'demo'))
+# Store our widgets in variables
+selectGUI = initSelectGUI(root, directory=DEFAULT_DIRECTORY)
+reader = initReader(root, os.path.join('res', 'demo'))
+
+# Begin by showing the directory select
+selectGUI.pack()
+reader.pack()
 
 
 # Get rocking!
