@@ -244,6 +244,7 @@ def loadConfig():
         data = json.load(fin)
 
     # Read fields from config if present
+    global DEFAULT_DIRECTORY
     if data[CONFIG_DEFAULT_DIRECTORY_FLAG]:
         DEFAULT_DIRECTORY = data[CONFIG_DEFAULT_DIRECTORY_FLAG]
 
