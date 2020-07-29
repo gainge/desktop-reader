@@ -4,7 +4,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import os
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, isdir, join
 import json
 import fnmatch
 import sys
@@ -28,19 +28,18 @@ class Reader(tk.Frame):
         self.parent = parent
         self.parentHeight = parent.winfo_screenheight()
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
+
         self.imageIndex = 0
-
-        self.canvas = tk.Canvas(self.parent)
-        # scroll_y = tk.Scrollbar(self.parent, orient="vertical", command=canvas.yview)
-        frame = tk.Frame(self.canvas)
-
         # See if we can read some images from here, eh?
         mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
         mangaFiles.sort()
 
         self.mangaFiles = mangaFiles
         self.images = [None] * len(mangaFiles)
-        print(mangaFiles)
+
+
+        self.canvas = tk.Canvas(self.parent)
+        frame = tk.Frame(self.canvas)
 
         self.image = self._loadImage()
 
@@ -49,12 +48,44 @@ class Reader(tk.Frame):
 
 
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
-        self.canvas.bind_all("<MouseWheel>", lambda event: self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED))
+        self.canvas.bind_all("<MouseWheel>", self.onScroll)
         self.canvas.bind_all("<Key>", self.keyPress)
 
         self.canvas.update_idletasks()
 
         self.canvas.pack(fill='both', expand=True, side='left')
+
+
+    def initData(self, directory):
+        if not isdir(directory):
+            return
+        # Otherwise we're good to go!
+        self.imageDir = directory
+        self.imageIndex = 0
+
+        # Load files in directory
+        mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
+        mangaFiles.sort()
+
+        self.mangaFiles = mangaFiles
+        self.images = [None] * len(mangaFiles) # TODO: make this a rolling buffer :)
+
+
+        
+    def onScroll(self, event):
+        self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
+
+    def updateDirectory(self, newDirectory):
+        if not isdir(newDirectory):
+            return
+        
+        # Initialize our data members required for reading
+        self.initData(directory)
+
+        # Update the UI to reflect the new data
+        self.image = self._loadImage()
+        self.pagesLabel['text'] = self._createPagesText()
+
 
     def keyPress(self, e):
         if e.keycode == KEY_LEFT:
@@ -64,7 +95,7 @@ class Reader(tk.Frame):
 
     
     def nextImage(self):
-        if self.imageIndex >= len(self.mangaFiles):
+        if self.imageIndex >= len(self.mangaFiles) - 1:
             return
         
         self.changePage(self.imageIndex + 1)
@@ -79,9 +110,12 @@ class Reader(tk.Frame):
     def reloadImage(self):
         self.changePage(self.imageIndex)
 
+    def removeCurrentImage(self):
+        if (self.image): self.canvas.delete(self.image)
+
     def changePage(self, newIndex):
         # Delete the current image
-        if (self.image): self.canvas.delete(self.image)
+        self.removeCurrentImage()
 
         # Load the new index
         self.imageIndex = newIndex
