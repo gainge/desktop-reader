@@ -136,7 +136,7 @@ class DirSelect(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         try:
-            self.onDirectorySelect = kwargs.pop('onDirectorySelect', None)
+            self.onDirectorySelect = kwargs.pop('onDirectorySelect')
         except:
             print('Please supply a callback for directory selection!')
             exit()
