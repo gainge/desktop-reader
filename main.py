@@ -140,6 +140,8 @@ class DirSelect(tk.Frame):
         except:
             print('Please supply a callback for directory selection!')
             exit()
+
+        self.directory = kwargs.pop('directory', '~')
         
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
@@ -166,7 +168,7 @@ class DirSelect(tk.Frame):
         self.root.pack()
 
     def openDirectorySelect(self):
-        self.mangaDir = filedialog.askdirectory(initialdir = "~",title = "Select Manga Folder")
+        self.mangaDir = filedialog.askdirectory(initialdir = self.directory,title = "Select Manga Folder")
 
         if (self._pathIsValid(self.mangaDir)):
             # Update our label and the button state
@@ -206,9 +208,9 @@ def initRoot():
     return root
 
 
-def initSelectGUI(root):
+def initSelectGUI(root, directory='~'):
     # Wire up the select section guy
-    select = DirSelect(root, onDirectorySelect=onSelectCallback)
+    select = DirSelect(root, onDirectorySelect=onSelectCallback, directory=directory)
     select.pack()
 
     # Add the logo :)
@@ -272,8 +274,8 @@ print(DEFAULT_DIRECTORY)
 root = initRoot()  
 
 # Add the initial selection widgets
-# initSelectGUI(root)
-initReader(root, os.path.join('res', 'demo'))
+initSelectGUI(root, directory=DEFAULT_DIRECTORY)
+# initReader(root, os.path.join('res', 'demo'))
 
 
 # Get rocking!
