@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import os
 from os import listdir
 from os.path import isfile, join
+import json
 import fnmatch
 import sys
 
@@ -193,6 +194,18 @@ def onSelectCallback():
 
 
 
+
+def initRoot():
+    root = tk.Tk()
+    root.title("Manga Reader")
+    root.attributes('-fullscreen', True)
+
+    # Wire up quit action
+    root.bind("<Key>", lambda e: quit() if e.keycode == KEY_ESC else None)
+
+    return root
+
+
 def initSelectGUI(root):
     # Wire up the select section guy
     select = DirSelect(root, onDirectorySelect=onSelectCallback)
@@ -207,6 +220,35 @@ def initReader(root, imageDir):
     reader = Reader(root, imageDir=imageDir)
     reader.pack()
 
+
+
+def quit():
+    # confirm exit
+    result = messagebox.askyesno('Exit', 'Would you like to quit?')
+
+    if not result:
+        return
+
+    global root
+    root.destroy()
+
+
+def loadConfig():
+    # Assure existence
+    if not isfile(CONFIG_FILE):
+        open(CONFIG_FILE, 'a').close()
+    
+    # Attempt to read the json data
+    data = {}
+    with open(CONFIG_FILE, 'r') as fin:
+        data = json.load(fin)
+
+    # Read fields from config if present
+    if data[CONFIG_DEFAULT_DIRECTORY_FLAG]:
+        DEFAULT_DIRECTORY = data[CONFIG_DEFAULT_DIRECTORY_FLAG]
+
+
+KEY_ESC = 3473435
 KEY_SHIFT_Q = 81
 KEY_LEFT = 8124162
 KEY_RIGHT = 8189699
@@ -216,10 +258,17 @@ KEY_DOWN = 8255233
 IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
 
+CONFIG_FILE = 'config.json'
+DEFAULT_DIRECTORY = '~'
+CONFIG_DEFAULT_DIRECTORY_FLAG = 'defaultDirectory'
+
+
+loadConfig()
+print(DEFAULT_DIRECTORY)
+
+
 # Set up the root
-root = tk.Tk()
-root.title("Manga Reader")
-root.attributes('-fullscreen', True)  
+root = initRoot()  
 
 # Add the initial selection widgets
 # initSelectGUI(root)
