@@ -227,7 +227,8 @@ class DirSelect(tk.Frame):
 
 def onSelectCallback(mangaDir):
     global reader
-    print('this is where we\'d swap some stuff around')
+    print('Here goes nothing!')
+    reader.updateDirectory(mangaDir)
 
 
 def removeWidget(widget):
