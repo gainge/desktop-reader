@@ -13,6 +13,7 @@ import sys
 
 class Reader(tk.Frame):
     IMAGE_HEIGHT_SCALE = 1.8
+    IMAGE_HEIGHT_DELTA = 0.2
     SCROLL_SPEED = 10
 
     def __init__(self, parent, *args, **kwargs):
@@ -28,6 +29,7 @@ class Reader(tk.Frame):
         self.parent = parent
         self.parentHeight = parent.winfo_screenheight()
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
+        self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
 
         self.imageIndex = 0
         # See if we can read some images from here, eh?
@@ -68,9 +70,11 @@ class Reader(tk.Frame):
         mangaFiles.sort()
 
         self.mangaFiles = mangaFiles
-        self.images = [None] * len(mangaFiles) # TODO: make this a rolling buffer :)
+        self.createImageBuffer()
 
 
+    def createImageBuffer(self):
+        self.images = [None] * len(self.mangaFiles) # TODO: make this a rolling buffer :)
         
     def onScroll(self, event):
         self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
@@ -92,6 +96,18 @@ class Reader(tk.Frame):
             self.nextImage()
         elif e.keycode == KEY_RIGHT:
             self.prevImage()
+        elif e.keycode == KEY_MINUS:
+            self.zoomOut()
+        elif e.keycode == KEY_EQUAL:
+            self.zoomIn()
+
+    def zoomOut(self):
+        self.imageHeight = max(0, self.imageHeight - self.imageHeightDelta)
+        self.reloadImage()
+
+    def zoomIn(self):
+        self.imageHeight = self.imageHeight + self.imageHeightDelta
+        self.reloadImage()
 
     
     def nextImage(self):
@@ -108,6 +124,7 @@ class Reader(tk.Frame):
         self.changePage(self.imageIndex - 1)
 
     def reloadImage(self):
+        self.createImageBuffer()
         self.changePage(self.imageIndex)
 
     def removeCurrentImage(self):
@@ -134,8 +151,17 @@ class Reader(tk.Frame):
             # Load the image, it's not cached
             imageName = self.mangaFiles[index]
             load = Image.open(join(self.imageDir, imageName))
-            load.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
-            self.images[index] = ImageTk.PhotoImage(load)
+            width, height = load.size
+
+            # Scale up image if it's kind of small
+            scale = (self.parentHeight / height) * self.IMAGE_HEIGHT_SCALE
+            newWidth = int(width * scale)
+            newHeight = int(height * scale)
+
+            resized = load.resize((newWidth, newHeight), Image.ANTIALIAS)
+
+            resized.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
+            self.images[index] = ImageTk.PhotoImage(resized)
         
         return self.images[index]
 
@@ -301,6 +327,8 @@ KEY_LEFT = 8124162
 KEY_RIGHT = 8189699
 KEY_UP = 8320768
 KEY_DOWN = 8255233
+KEY_MINUS = 1769517
+KEY_EQUAL = 1572925
 
 IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
