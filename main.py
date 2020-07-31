@@ -126,11 +126,14 @@ class Reader(tk.Frame):
             self.zoomIn()
 
     def zoomOut(self):
-        self.imageHeight = max(0, self.imageHeight - self.imageHeightDelta)
-        self.reloadImage()
+        self.zoomToHeight(max(10, self.imageHeight - self.imageHeightDelta))
 
     def zoomIn(self):
-        self.imageHeight = self.imageHeight + self.imageHeightDelta
+        self.zoomToHeight(self.imageHeight + self.imageHeightDelta)
+
+    def zoomToHeight(self, newHeight):
+        self.imageHeight = newHeight
+        self.createImageBuffer(self.imageIndex)
         self.reloadImage()
 
     
@@ -148,7 +151,6 @@ class Reader(tk.Frame):
         self.changePage(self.imageIndex - 1)
 
     def reloadImage(self):
-        self.createImageBuffer(self.imageIndex)
         self.changePage(self.imageIndex)
 
     def removeCurrentImage(self):
