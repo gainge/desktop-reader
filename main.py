@@ -40,7 +40,7 @@ class Reader(tk.Frame):
 
         # Init widget state and data
         self.initData(directory)
-        self.image = self._loadImage()
+        self.image = self.renderImage(0)
 
         self.pagesLabel = tk.Label(frame, text=self._createPagesText())
         self.pagesLabel.pack()
@@ -67,11 +67,21 @@ class Reader(tk.Frame):
         mangaFiles.sort()
 
         self.mangaFiles = mangaFiles
+        
+        # Check for too small of a buffer :P
+        if self.BUFFER_SIZE > len(mangaFiles):
+            self.BUFFER_SIZE = ((len(mangaFiles) // 2) * 2) + (len(mangaFiles) % 2)
+
         self.createImageBuffer()
 
 
     def createImageBuffer(self):
-        self.images = [None] * len(self.mangaFiles) # TODO: make this a rolling buffer :)
+        # Create buffer and load images according to configured size
+        self.images = [None] * self.BUFFER_SIZE
+
+        # Load the initial PRELOAD_WINDOW + 1 images
+        for i in range((self.BUFFER_SIZE // 2) + 1):
+            self.images[i] = self.loadMangaImage(i)
         
     def onScroll(self, event):
         self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
@@ -84,15 +94,15 @@ class Reader(tk.Frame):
         self.initData(newDirectory)
 
         # Update the UI to reflect the new data
-        self.image = self._loadImage()
+        self.image = self.renderImage(0)
         self.pagesLabel['text'] = self._createPagesText()
 
 
     def keyPress(self, e):
         if e.keycode == KEY_LEFT:
-            self.nextImage()
+            self.showNextImage()
         elif e.keycode == KEY_RIGHT:
-            self.prevImage()
+            self.showPrevImage()
         elif e.keycode == KEY_MINUS:
             self.zoomOut()
         elif e.keycode == KEY_EQUAL:
@@ -107,14 +117,14 @@ class Reader(tk.Frame):
         self.reloadImage()
 
     
-    def nextImage(self):
+    def showNextImage(self):
         if self.imageIndex >= len(self.mangaFiles) - 1:
             return
         
         self.changePage(self.imageIndex + 1)
 
 
-    def prevImage(self):
+    def showPrevImage(self):
         if self.imageIndex <= 0:
             return
         
@@ -131,36 +141,59 @@ class Reader(tk.Frame):
         # Delete the current image
         self.removeCurrentImage()
 
-        # Load the new index
+        # Check to see if we can load another image into the buffer
+        preloadIndex = -1
+
+        if newIndex > self.imageIndex:
+            # Moving ahead
+            preloadIndex = newIndex + self.PRELOAD_WINDOW     
+        else:
+            # Moving back
+            preloadIndex = newIndex - self.PRELOAD_WINDOW
+
+        # Check for load validity
+        if preloadIndex < len(self.mangaFiles) and preloadIndex >= 0:
+            # Load a new image in the buffer
+            self.images[preloadIndex % self.BUFFER_SIZE] = self.loadMangaImage(preloadIndex)
+
+        # Update the index
         self.imageIndex = newIndex
-        self.image = self._loadImage(newIndex) # display new image and delete
+        self.image = self.renderImage(newIndex) # display new image and delete
         self.pagesLabel['text'] = self._createPagesText()
 
     
-    def _loadImage(self, index=0):
-        image = self._getMangaImage(index)
+    def renderImage(self, index=0):
+        image = self.getMangaImage(index)
         width = self.parent.winfo_width()
         return self.canvas.create_image(width/2, 0, image=image, anchor='n')
 
+
+    def loadMangaImage(self, index):
+        # Load the image, it's not cached
+        imageName = self.mangaFiles[index]
+        load = Image.open(join(self.imageDir, imageName))
+        width, height = load.size
+
+        # Scale up image if it's kind of small
+        scale = (self.parentHeight / height) * self.IMAGE_HEIGHT_SCALE
+        newWidth = int(width * scale)
+        newHeight = int(height * scale)
+
+        resized = load.resize((newWidth, newHeight), Image.ANTIALIAS)
+
+        resized.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
+        return ImageTk.PhotoImage(resized)
+
     
-    def _getMangaImage(self, index):
-        if not self.images[index]:
-            # Load the image, it's not cached
-            imageName = self.mangaFiles[index]
-            load = Image.open(join(self.imageDir, imageName))
-            width, height = load.size
+    def getMangaImage(self, index):
+        # Retrieve a manga image from buffer
+        # the index will be used mod the length of the buffer
+        image = self.images[index % self.BUFFER_SIZE]
 
-            # Scale up image if it's kind of small
-            scale = (self.parentHeight / height) * self.IMAGE_HEIGHT_SCALE
-            newWidth = int(width * scale)
-            newHeight = int(height * scale)
-
-            resized = load.resize((newWidth, newHeight), Image.ANTIALIAS)
-
-            resized.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
-            self.images[index] = ImageTk.PhotoImage(resized)
+        if not image:
+            print('Requested image has not been loaded?  No bueno!')
         
-        return self.images[index]
+        return image
 
 
     def _createPagesText(self):
