@@ -150,6 +150,13 @@ class Reader(tk.Frame):
         
         self.changePage(self.imageIndex - 1)
 
+    def jumpToIndex(self, targetIndex):
+        if targetIndex < 0 or targetIndex >= len(self.mangaFiles):
+            return
+        
+        self.createImageBuffer(targetIndex)
+        self.changePage(targetIndex)
+
     def reloadImage(self):
         self.changePage(self.imageIndex)
 
