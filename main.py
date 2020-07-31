@@ -35,7 +35,7 @@ class Reader(tk.Frame):
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
         self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
 
-        self.canvas = tk.Canvas(self.parent)
+        self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
         frame = tk.Frame(self.canvas)
 
         # Init widget state and data
@@ -44,6 +44,12 @@ class Reader(tk.Frame):
 
         self.pagesLabel = tk.Label(frame, text=self._createPagesText())
         self.pagesLabel.pack()
+
+        self.pageEntry = tk.Entry(frame, width=8)
+        self.pageEntry.pack(anchor='w')
+
+        self.pageSubmit = tk.Button(frame, command=self.onPageSubmit, text='Jump')
+        self.pageSubmit.pack(anchor='w')
 
 
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
@@ -102,6 +108,21 @@ class Reader(tk.Frame):
         
     def onScroll(self, event):
         self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
+
+    def onPageSubmit(self):
+        # Remove gross focus
+        self.canvas.focus_set()
+
+        # Attempt to jump pages
+        userSelection = self.pageEntry.get()
+
+        if userSelection and userSelection.isdigit():
+            targetPage = int(userSelection) - 1 # Offset to account for indexing
+
+            self.jumpToIndex(targetPage)
+
+            # Clean up text
+            self.pageEntry.delete(0, len(userSelection))
 
     def updateDirectory(self, newDirectory):
         if not isdir(newDirectory):
