@@ -15,10 +15,14 @@ class Reader(tk.Frame):
     IMAGE_HEIGHT_SCALE = 1.8
     IMAGE_HEIGHT_DELTA = 0.2
     SCROLL_SPEED = 10
+    PRELOAD_WINDOW = 3
+    BUFFER_SIZE = (2 * PRELOAD_WINDOW) + 1 # Trying do ensure it's odd
 
     def __init__(self, parent, *args, **kwargs):
+        directory = '~'
+
         try:
-            self.imageDir = kwargs.pop('imageDir', None)
+            directory = kwargs.pop('imageDir', None)
         except Exception as e:
             print(str(e))
             exit()
@@ -31,18 +35,11 @@ class Reader(tk.Frame):
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
         self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
 
-        self.imageIndex = 0
-        # See if we can read some images from here, eh?
-        mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
-        mangaFiles.sort()
-
-        self.mangaFiles = mangaFiles
-        self.images = [None] * len(mangaFiles)
-
-
         self.canvas = tk.Canvas(self.parent)
         frame = tk.Frame(self.canvas)
 
+        # Init widget state and data
+        self.initData(directory)
         self.image = self._loadImage()
 
         self.pagesLabel = tk.Label(frame, text=self._createPagesText())
