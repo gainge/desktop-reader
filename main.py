@@ -71,17 +71,34 @@ class Reader(tk.Frame):
         # Check for too small of a buffer :P
         if self.BUFFER_SIZE > len(mangaFiles):
             self.BUFFER_SIZE = ((len(mangaFiles) // 2) * 2) + (len(mangaFiles) % 2)
+            
+            # Assert odd parity
+            assert self.BUFFER_SIZE % 2 == 1
 
-        self.createImageBuffer()
+            self.PRELOAD_WINDOW = self.BUFFER_SIZE // 2
+
+        self.createImageBuffer(self.imageIndex)
 
 
-    def createImageBuffer(self):
+    def createImageBuffer(self, startIndex=0):
         # Create buffer and load images according to configured size
         self.images = [None] * self.BUFFER_SIZE
 
-        # Load the initial PRELOAD_WINDOW + 1 images
-        for i in range((self.BUFFER_SIZE // 2) + 1):
-            self.images[i] = self.loadMangaImage(i)
+        # Load initial image
+        self.insertImageIntoBuffer(startIndex)
+
+        # Previous images
+        for i in range(startIndex - self.PRELOAD_WINDOW, startIndex):
+            if i >= 0: self.insertImageIntoBuffer(i)
+        
+        # Next images
+        for i in range(startIndex + 1, startIndex + self.PRELOAD_WINDOW + 1):
+            if i < len(self.mangaFiles): self.insertImageIntoBuffer(i)
+
+
+    def insertImageIntoBuffer(self, imageIndex):
+        self.images[imageIndex % self.BUFFER_SIZE] = self.loadMangaImage(imageIndex)
+
         
     def onScroll(self, event):
         self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
@@ -131,7 +148,7 @@ class Reader(tk.Frame):
         self.changePage(self.imageIndex - 1)
 
     def reloadImage(self):
-        self.createImageBuffer()
+        self.createImageBuffer(self.imageIndex)
         self.changePage(self.imageIndex)
 
     def removeCurrentImage(self):
