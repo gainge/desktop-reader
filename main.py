@@ -185,8 +185,13 @@ class Reader(tk.Frame):
         if (self.image): self.canvas.delete(self.image)
 
     def changePage(self, newIndex):
+        # Check oob
         if newIndex < 0 or newIndex >= len(self.mangaFiles):
             return
+        # Check availability
+        if not self.images[newIndex % self.BUFFER_SIZE]:
+            return
+
         # Delete the current image
         self.removeCurrentImage()
 
