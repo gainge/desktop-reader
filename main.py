@@ -36,6 +36,7 @@ class Reader(tk.Frame):
         self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
 
         self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
+        self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
         frame = tk.Frame(self.canvas)
 
         # Init widget state and data
@@ -350,6 +351,7 @@ def initRoot():
     root = tk.Tk()
     root.title("Manga Reader")
     root.attributes('-fullscreen', True)
+    root.configure(bg=BACKGROUND_COLOR)
 
     # Wire up quit action
     root.bind("<Key>", lambda e: quit() if e.keycode == KEY_ESC else None)
@@ -359,6 +361,7 @@ def initRoot():
 
 def initSelectGUI(root, directory='~'):
     guiParent = tk.Frame(root)
+    guiParent.configure(bg=BACKGROUND_COLOR)
 
     # Wire up the select section guy
     select = DirSelect(guiParent, onDirectorySelect=onSelectCallback, directory=directory)
@@ -413,6 +416,8 @@ KEY_UP = 8320768
 KEY_DOWN = 8255233
 KEY_MINUS = 1769517
 KEY_EQUAL = 1572925
+
+BACKGROUND_COLOR = '#5c5c5c'
 
 IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
