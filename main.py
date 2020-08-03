@@ -287,14 +287,14 @@ class DirSelect(tk.Frame):
             exit()
 
         self.directory = kwargs.pop('directory', '~')
+
+        sizex = kwargs.pop('sizex', 800)
+        sizey = kwargs.pop('sizey', 600)
         
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
         self.parent = parent
         
-
-        sizex = 800
-        sizey = 600
         self.root = tk.Frame(self.parent, width=sizex, height=sizey, padx=10, pady=10)
 
         # Select Button
