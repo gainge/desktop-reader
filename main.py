@@ -448,11 +448,9 @@ print(DEFAULT_DIRECTORY)
 root = initRoot()  
 
 # Store our widgets in variables
-# selectGUI = initSelectGUI(root, directory=DEFAULT_DIRECTORY)
 reader = initReader(root, os.path.join('res', 'demo'), DirSelect)
 
 # Begin by showing the directory select
-# selectGUI.pack()
 reader.pack()
 
 
