@@ -22,7 +22,7 @@ class Reader(tk.Frame):
         directory = '~'
 
         try:
-            directory = kwargs.pop('imageDir', None)
+            directory = kwargs.pop('imageDir')
         except Exception as e:
             print(str(e))
             exit()
