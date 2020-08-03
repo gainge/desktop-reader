@@ -302,7 +302,7 @@ class DirSelect(tk.Frame):
         self.selectButton.pack()
 
         # Directory Label
-        self.directoryLabel = tk.Label(self.root, text='[No Directory Selected]', wraplength=170)
+        self.directoryLabel = tk.Label(self.root, text='[No Directory Selected]', wraplength=sizex)
         self.directoryLabel.pack()
 
         # Start Reading Button
