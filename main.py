@@ -20,9 +20,12 @@ class Reader(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         directory = '~'
+        self.directoryPicker = None
+        dirSelectWidget = None
 
         try:
             directory = kwargs.pop('imageDir')
+            dirSelectWidget = kwargs.pop('directoryPicker')
         except Exception as e:
             print(str(e))
             exit()
@@ -37,29 +40,41 @@ class Reader(tk.Frame):
 
         self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
         self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
+
         frame = tk.Frame(self.canvas)
+        
+        leftMargin = tk.Frame(self.canvas)
+        rightMargin = tk.Frame(self.canvas)
 
         # Init widget state and data
         self.initData(directory)
         self.image = self.renderImage(0)
 
-        self.pagesLabel = tk.Label(frame, text=self._createPagesText())
+        self.pagesLabel = tk.Label(leftMargin, text=self._createPagesText())
         self.pagesLabel.pack()
 
-        self.pageEntry = tk.Entry(frame, width=8)
+        self.pageEntry = tk.Entry(leftMargin, width=8)
         self.pageEntry.pack(anchor='w')
 
-        self.pageSubmit = tk.Button(frame, command=self.onPageSubmit, text='Jump')
+        self.pageSubmit = tk.Button(leftMargin, command=self.onPageSubmit, text='Jump')
         self.pageSubmit.pack(anchor='w')
 
+        # Init dir select widget
+        self.directoryPicker = dirSelectWidget(rightMargin, onDirectorySelect=self.updateDirectory)
+        self.directoryPicker.pack()
 
+        # Init Canvas party
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
         self.canvas.bind_all("<MouseWheel>", self.onScroll)
         self.canvas.bind_all("<Key>", self.keyPress)
 
         self.canvas.update_idletasks()
 
-        self.canvas.pack(fill='both', expand=True, side='left')
+        
+        leftMargin.pack(anchor='nw', side=tk.LEFT)
+        rightMargin.pack(anchor='ne', side=tk.RIGHT)
+
+        self.canvas.pack(fill='both', expand=True)
 
 
     def initData(self, directory):
@@ -286,25 +301,25 @@ class DirSelect(tk.Frame):
 
         self.directory = kwargs.pop('directory', '~')
 
-        sizex = kwargs.pop('sizex', 800)
-        sizey = kwargs.pop('sizey', 600)
+        sizex = kwargs.pop('sizex', 80)
+        sizey = kwargs.pop('sizey', 60)
         
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
         self.parent = parent
         
-        self.root = tk.Frame(self.parent, width=sizex, height=sizey, padx=10, pady=10)
+        self.root = tk.Frame(self.parent, width=sizex, height=sizey, padx=0, pady=0)
 
         # Select Button
-        self.selectButton = tk.Button(self.root, command=self.openDirectorySelect, text='Choose Manga Directory', fg='red')
+        self.selectButton = tk.Button(self.root, command=self.openDirectorySelect, text='Select Dir', fg='red')
         self.selectButton.pack()
 
         # Directory Label
-        self.directoryLabel = tk.Label(self.root, text='[No Directory Selected]', wraplength=sizex)
+        self.directoryLabel = tk.Label(self.root, text='[N/A]', wraplength=sizex)
         self.directoryLabel.pack()
 
         # Start Reading Button
-        self.readButton = tk.Button(self.root, command=self.startReading, text='Start Reading', state='disabled')
+        self.readButton = tk.Button(self.root, command=self.startReading, text='Read!', state='disabled')
         self.readButton.pack()
 
 
@@ -372,8 +387,8 @@ def initSelectGUI(root, directory='~'):
     return guiParent
 
 
-def initReader(root, imageDir):
-    reader = Reader(root, imageDir=imageDir)
+def initReader(root, imageDir, dirSelectWidget):
+    reader = Reader(root, imageDir=imageDir, directoryPicker=dirSelectWidget)
     
     return reader
 
@@ -433,11 +448,11 @@ print(DEFAULT_DIRECTORY)
 root = initRoot()  
 
 # Store our widgets in variables
-selectGUI = initSelectGUI(root, directory=DEFAULT_DIRECTORY)
-reader = initReader(root, os.path.join('res', 'demo'))
+# selectGUI = initSelectGUI(root, directory=DEFAULT_DIRECTORY)
+reader = initReader(root, os.path.join('res', 'demo'), DirSelect)
 
 # Begin by showing the directory select
-selectGUI.pack()
+# selectGUI.pack()
 reader.pack()
 
 
