@@ -153,9 +153,9 @@ class Reader(tk.Frame):
 
 
     def keyPress(self, e):
-        if e.keycode == KEY_LEFT:
+        if e.keycode == KEY_LEFT or e.keycode == KEY_Z:
             self.showNextImage()
-        elif e.keycode == KEY_RIGHT:
+        elif e.keycode == KEY_RIGHT or e.keycode == KEY_X:
             self.showPrevImage()
         elif e.keycode == KEY_MINUS:
             self.zoomOut()
@@ -429,6 +429,8 @@ KEY_UP = 8320768
 KEY_DOWN = 8255233
 KEY_MINUS = 1769517
 KEY_EQUAL = 1572925
+KEY_Z = 393338;
+KEY_X = 458872;
 
 BACKGROUND_COLOR = '#5c5c5c'
 
