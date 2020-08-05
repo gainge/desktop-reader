@@ -60,7 +60,7 @@ class Reader(tk.Frame):
         self.pageSubmit.pack(anchor='w')
 
         # Init dir select widget
-        self.directoryPicker = dirSelectWidget(rightMargin, onDirectorySelect=self.updateDirectory)
+        self.directoryPicker = dirSelectWidget(rightMargin, directorySelectCallback=self.updateDirectory)
         self.directoryPicker.pack()
 
         # Init Canvas party
@@ -291,10 +291,94 @@ class Logo(tk.Frame):
         self.imageLabel.pack()
 
 
+class RecentsDialog(tk.Toplevel):
+    def __init__(self, parent, items, callback):
+        # self.top = tk.Toplevel(parent)
+
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        self.parent = parent
+
+        self.result = None
+
+        self.callback = callback
+        self.items = items
+
+        body = tk.Frame(self)
+        self.initial_focus = self.body(body)
+        body.pack(padx=5, pady=5)
+
+        self.buttonbox()
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+    
+    def body(self, master):
+        # create dialog body.  return widget that should have
+        # initial focus.  this method should be overridden
+
+        self.listbox = tk.Listbox(master=master, selectmode=tk.SINGLE)
+
+        for item in self.items:
+            self.listbox.insert(tk.END, item)
+
+
+        self.listbox.pack()
+
+        return self.listbox
+
+    def buttonbox(self):
+        # add standard button box. override if you don't want the
+        # standard buttons
+
+        box = tk.Frame(self)
+
+        w = tk.Button(box, text="OK", width=10, command=self.ok, default=tk.ACTIVE)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+        w = tk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+
+        box.pack()
+    
+    def ok(self, event=None):
+
+        self.initial_focus.focus_set() # put focus back
+        self.withdraw()
+        self.update_idletasks()
+
+        selectedIndex = 0 if not len(self.listbox.curselection()) else self.listbox.curselection()[0]
+        self.callback(self.items[selectedIndex])
+
+        self.cancel()
+
+    def cancel(self, event=None):
+
+        # put focus back to the parent window
+        self.parent.focus_set()
+        self.destroy()
+
+
+
+
 class DirSelect(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         try:
-            self.onDirectorySelect = kwargs.pop('onDirectorySelect')
+            self.directorySelectCallback = kwargs.pop('directorySelectCallback')
         except:
             print('Please supply a callback for directory selection!')
             exit()
@@ -322,8 +406,15 @@ class DirSelect(tk.Frame):
         self.readButton = tk.Button(self.root, command=self.startReading, text='Read!', state='disabled')
         self.readButton.pack()
 
+        # Recents button
+        self.recentsButton = tk.Button(self.root, command=self.openRecentsSelect, text='Recent')
+        self.recentsButton.pack()
 
         self.root.pack()
+
+    def openRecentsSelect(self):
+        x = RecentsDialog(self.parent, recents, self.onDirectorySelect)
+        
 
     def openDirectorySelect(self):
         self.mangaDir = filedialog.askdirectory(initialdir = self.directory,title = "Select Manga Folder")
@@ -337,11 +428,16 @@ class DirSelect(tk.Frame):
 
         if (self.mangaDir and os.path.isdir(self.mangaDir) and os.path.exists(self.mangaDir)):
             print('Good to start reading from: ' + str(self.mangaDir))
-            print('executing read callback!')
             self.onDirectorySelect(self.mangaDir)
         else:
             messagebox.showerror("Error", "Please select a manga directory")
 
+
+    def onDirectorySelect(self, directory):
+        print('Saving recent dir')
+        saveRecentDir(directory)
+        print('executing read callback!')
+        self.directorySelectCallback(directory)
 
     def _pathIsValid(self, path):
         return path and os.path.isdir(path) and os.path.exists(path)
@@ -377,7 +473,7 @@ def initSelectGUI(root, directory='~'):
     guiParent.configure(bg=BACKGROUND_COLOR)
 
     # Wire up the select section guy
-    select = DirSelect(guiParent, onDirectorySelect=onSelectCallback, directory=directory)
+    select = DirSelect(guiParent, directorySelectCallback=onSelectCallback, directory=directory)
     select.pack()
 
     # Add the logo :)
@@ -421,6 +517,36 @@ def loadConfig():
         DEFAULT_DIRECTORY = data[CONFIG_DEFAULT_DIRECTORY_FLAG]
 
 
+def saveRecentDir(mangaDir):
+    global recents
+
+    if mangaDir in recents:
+        # move it up the heirarchy
+        index = recents.index(mangaDir)
+
+        recents = [mangaDir] + recents[:index] + recents[(index + 1):]
+    else:
+        # insert at front and re-assign
+        if len(recents) > 5:
+            recents = recents[:-1]
+        recents.insert(0, mangaDir)
+
+    
+    # now we save
+    print('Writing: ' + str(recents))
+    with open(RECENTS_FILE, 'w') as fout:
+        for line in recents:
+            fout.write(str(line) + '\n')
+            
+
+def loadRecents():
+    recents = []
+
+    with open(RECENTS_FILE, 'r') as fin:
+        recents = fin.read().splitlines()
+
+    return recents
+
 KEY_ESC = 3473435
 KEY_SHIFT_Q = 81
 KEY_LEFT = 8124162
@@ -438,11 +564,15 @@ IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
 
 CONFIG_FILE = 'config.json'
+RECENTS_FILE = 'recents.txt'
 DEFAULT_DIRECTORY = '~'
 CONFIG_DEFAULT_DIRECTORY_FLAG = 'defaultDirectory'
 
 
+recents = loadRecents()
+
 loadConfig()
+loadRecents()
 print(DEFAULT_DIRECTORY)
 
 
