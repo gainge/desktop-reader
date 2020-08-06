@@ -123,6 +123,7 @@ class Reader(tk.Frame):
 
         
     def onScroll(self, event):
+        if event.state: return
         self.canvas.move(self.image, 0, event.delta * self.SCROLL_SPEED)
 
     def onPageSubmit(self):
