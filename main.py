@@ -55,6 +55,7 @@ class Reader(tk.Frame):
 
         self.pageEntry = tk.Entry(leftMargin, width=8)
         self.pageEntry.pack(anchor='w')
+        self.pageEntry.bind("<Return>", lambda _: self.onPageSubmit())
 
         self.pageSubmit = tk.Button(leftMargin, command=self.onPageSubmit, text='Jump')
         self.pageSubmit.pack(anchor='w')
