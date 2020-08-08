@@ -203,25 +203,33 @@ class Reader(tk.Frame):
 
 
     def showSpreadPage(self):
-        if self.imageIndex < 1:
+        if self.imageIndex >= len(self.mangaFiles):
             return # Don't mess with edge cases and w/e
 
-        # Let's just throw in some temp functionality for now
-        print('showing spread page!')
-
-        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
-
         
+        # Create widgets
+        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
+        
+        # Load images @ correct size
+        self.leftImage = self.loadMangaImage(self.imageIndex + 1, 1)
+        self.rightImage = self.loadMangaImage(self.imageIndex, 1)
+        
+        # Display and store
+        width = self.parent.winfo_width()
+        offset = (width / 2) - self.leftImage.width()
+        leftPanel = self.canvas.create_image((width / 4) + (offset / 2), 0, image=self.leftImage, anchor='n')
+        rightPanel = self.canvas.create_image(((3 * width) / 4) - (offset / 2), 0, image=self.rightImage, anchor='n')
 
         # Add the ids to our list for safekeeping
-        self.spreadElements.append(bg)
+        self.spreadElements = [bg, leftPanel, rightPanel]
     
 
     def hideSpreadPage(self):
-        print('removing spread page!')
-
+        # Remove temporary display
         for elementID in self.spreadElements:
             self.canvas.delete(elementID)
+
+        self.spreadElements = []
 
     def showPrevImage(self):
         if self.imageIndex <= 0:
@@ -266,7 +274,7 @@ class Reader(tk.Frame):
         # Check for load validity
         if preloadIndex < len(self.mangaFiles) and preloadIndex >= 0:
             # Load a new image in the buffer
-            self.images[preloadIndex % self.BUFFER_SIZE] = self.loadMangaImage(preloadIndex)
+            self.insertImageIntoBuffer(preloadIndex)
 
         # Update the index
         self.imageIndex = newIndex
@@ -293,7 +301,13 @@ class Reader(tk.Frame):
 
 
     def scaleImage(self, image, ratio=IMAGE_HEIGHT_SCALE):
-        width, height = image.size
+        width, height = (None, None)
+
+        if hasattr(image, 'size'):
+            width, height = image.size
+        else:
+            width = int(image.width())
+            height = int(image.height())
 
         scale = (self.parentHeight / height) * ratio
         newWidth = int(width * scale)
