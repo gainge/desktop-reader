@@ -69,7 +69,6 @@ class Reader(tk.Frame):
         # Init Canvas party
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
         self.canvas.bind_all("<MouseWheel>", self.onScroll)
-        self.canvas.bind_all("<Key>", self.onKey)
         self.canvas.bind_all("<KeyPress>", self.onKeyPress)
         self.canvas.bind_all("<KeyRelease>", self.onKeyRelease)
 
@@ -158,17 +157,6 @@ class Reader(tk.Frame):
         self.pagesLabel['text'] = self._createPagesText()
 
 
-    def onKey(self, e):
-        if e.keycode == KEY_LEFT or e.keycode == KEY_Z:
-            self.showNextImage()
-        elif e.keycode == KEY_RIGHT or e.keycode == KEY_X:
-            self.showPrevImage()
-        elif e.keycode == KEY_MINUS:
-            self.zoomOut()
-        elif e.keycode == KEY_EQUAL:
-            self.zoomIn()
-
-
     def onKeyPress(self, e):
         # let's only recognize the m key for now
         if e.keycode == KEY_M:
@@ -177,7 +165,14 @@ class Reader(tk.Frame):
                 self.afterID = None
             else:
                 self.showSpreadPage()
-
+        elif e.keycode == KEY_LEFT or e.keycode == KEY_Z:
+            self.showNextImage()
+        elif e.keycode == KEY_RIGHT or e.keycode == KEY_X:
+            self.showPrevImage()
+        elif e.keycode == KEY_MINUS:
+            self.zoomOut()
+        elif e.keycode == KEY_EQUAL:
+            self.zoomIn()
 
     def onKeyRelease(self, e):
         if e.keycode == KEY_M:
@@ -213,10 +208,19 @@ class Reader(tk.Frame):
 
         # Let's just throw in some temp functionality for now
         print('showing spread page!')
+
+        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
+
+
+        # Add the ids to our list for safekeeping
+        self.spreadElements.append(bg)
     
 
     def hideSpreadPage(self):
         print('removing spread page!')
+
+        for elementID in self.spreadElements:
+            self.canvas.delete(elementID)
 
     def showPrevImage(self):
         if self.imageIndex <= 0:
