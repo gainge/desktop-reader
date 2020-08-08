@@ -211,6 +211,7 @@ class Reader(tk.Frame):
 
         bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
 
+        
 
         # Add the ids to our list for safekeeping
         self.spreadElements.append(bg)
@@ -279,14 +280,14 @@ class Reader(tk.Frame):
         return self.canvas.create_image(width/2, 0, image=image, anchor='n')
 
 
-    def loadMangaImage(self, index):
+    def loadMangaImage(self, index, scale=IMAGE_HEIGHT_SCALE):
         # Load the image, it's not cached
         imageName = self.mangaFiles[index]
         load = Image.open(join(self.imageDir, imageName))
         width, height = load.size
 
         # Scale up image if it's kind of small
-        scale = (self.parentHeight / height) * self.IMAGE_HEIGHT_SCALE
+        scale = (self.parentHeight / height) * scale
         newWidth = int(width * scale)
         newHeight = int(height * scale)
 
