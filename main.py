@@ -292,10 +292,10 @@ class Reader(tk.Frame):
         return ImageTk.PhotoImage(resized)
 
 
-    def scaleImage(self, image, targetHeight=IMAGE_HEIGHT_SCALE):
+    def scaleImage(self, image, ratio=IMAGE_HEIGHT_SCALE):
         width, height = image.size
 
-        scale = (self.parentHeight / height) * targetHeight
+        scale = (self.parentHeight / height) * ratio
         newWidth = int(width * scale)
         newHeight = int(height * scale)
 
