@@ -37,6 +37,8 @@ class Reader(tk.Frame):
         self.parentHeight = parent.winfo_screenheight()
         self.imageHeight = self.IMAGE_HEIGHT_SCALE * self.parentHeight
         self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
+        self.afterID = None
+        self.spreadElements = []
 
         self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
         self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
@@ -67,7 +69,9 @@ class Reader(tk.Frame):
         # Init Canvas party
         self.canvas.create_window(0, 0, anchor='nw', window=frame)
         self.canvas.bind_all("<MouseWheel>", self.onScroll)
-        self.canvas.bind_all("<Key>", self.keyPress)
+        self.canvas.bind_all("<Key>", self.onKey)
+        self.canvas.bind_all("<KeyPress>", self.onKeyPress)
+        self.canvas.bind_all("<KeyRelease>", self.onKeyRelease)
 
         self.canvas.update_idletasks()
 
@@ -154,7 +158,7 @@ class Reader(tk.Frame):
         self.pagesLabel['text'] = self._createPagesText()
 
 
-    def keyPress(self, e):
+    def onKey(self, e):
         if e.keycode == KEY_LEFT or e.keycode == KEY_Z:
             self.showNextImage()
         elif e.keycode == KEY_RIGHT or e.keycode == KEY_X:
@@ -163,6 +167,25 @@ class Reader(tk.Frame):
             self.zoomOut()
         elif e.keycode == KEY_EQUAL:
             self.zoomIn()
+
+
+    def onKeyPress(self, e):
+        # let's only recognize the m key for now
+        if e.keycode == KEY_M:
+            if self.afterID != None:
+                self.after_cancel(self.afterID)
+                self.afterID = None
+            else:
+                self.showSpreadPage()
+
+
+    def onKeyRelease(self, e):
+        if e.keycode == KEY_M:
+            self.afterID = self.after_idle(self._processKeyRelease, e)
+    
+    def _processKeyRelease(self, e):
+        self.afterID = None
+        self.hideSpreadPage()
 
     def zoomOut(self):
         self.zoomToHeight(max(10, self.imageHeight - self.imageHeightDelta))
@@ -182,6 +205,18 @@ class Reader(tk.Frame):
         
         self.changePage(self.imageIndex + 1)
 
+
+
+    def showSpreadPage(self):
+        if self.imageIndex < 1:
+            return # Don't mess with edge cases and w/e
+
+        # Let's just throw in some temp functionality for now
+        print('showing spread page!')
+    
+
+    def hideSpreadPage(self):
+        print('removing spread page!')
 
     def showPrevImage(self):
         if self.imageIndex <= 0:
@@ -557,8 +592,9 @@ KEY_UP = 8320768
 KEY_DOWN = 8255233
 KEY_MINUS = 1769517
 KEY_EQUAL = 1572925
-KEY_Z = 393338;
-KEY_X = 458872;
+KEY_Z = 393338
+KEY_X = 458872
+KEY_M = 3014765
 
 BACKGROUND_COLOR = '#5c5c5c'
 
