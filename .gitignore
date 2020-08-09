@@ -3,6 +3,6 @@ res/
 .vscode/
 config.json
 recents.txt
-
+__pycache__/
 
 
