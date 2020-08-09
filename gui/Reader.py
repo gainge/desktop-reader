@@ -4,6 +4,7 @@ from os import listdir
 from os.path import isfile, isdir, join
 import fnmatch
 from PIL import Image, ImageTk
+from tkinter import font as tkfont
 
 
 class Reader(tk.Frame):
@@ -16,6 +17,12 @@ class Reader(tk.Frame):
     KEY_Z = 393338
     KEY_X = 458872
     KEY_M = 3014765
+
+    SPLASH_SIZE = 500
+    SPLASH_TITLE = "Manga Reader"
+    SPLASH_SUBTITLE = "Please Select a Directory"
+    SPLASH_TEXT_PADDING = 80
+    SPLASH_TEXT_COLOR = "#FFF"
 
     IMAGE_HEIGHT_SCALE = 1.8
     IMAGE_HEIGHT_DELTA = 0.2
@@ -46,9 +53,12 @@ class Reader(tk.Frame):
         self.imageHeightDelta = self.IMAGE_HEIGHT_DELTA * self.parentHeight
         self.afterID = None
         self.spreadElements = []
+        self.splashElements = []
 
         self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
-        self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
+
+        self.drawBackground()
+        self.renderSplash()
 
         frame = tk.Frame(self.canvas)
         
@@ -113,6 +123,47 @@ class Reader(tk.Frame):
         self.createImageBuffer(self.imageIndex)
 
 
+    def drawBackground(self):
+        return self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
+
+    def renderSplash(self):
+        img = self.loadImageFromPath('res/splash.png')
+        img.thumbnail((self.SPLASH_SIZE, self.SPLASH_SIZE), Image.ANTIALIAS)
+
+        self.splash = ImageTk.PhotoImage(img)
+
+        xpos = (self.canvas.winfo_screenwidth() / 2) - (self.splash.width() / 2)
+        ypos = (self.canvas.winfo_screenheight() / 2) - (self.splash.height() / 2)
+
+        splashID = self.canvas.create_image(xpos, ypos, image=self.splash, anchor='nw')
+
+        # Render some sick text
+        titleFont = tkfont.Font(family="Helvetica", size=40, weight="bold")
+        subtitleFont = tkfont.Font(family="Helvetica", size = 20)
+
+        titleID = self.canvas.create_text(
+            (self.canvas.winfo_screenwidth() / 2),
+            (self.canvas.winfo_screenheight() / 2) - (self.splash.height() / 2) - self.SPLASH_TEXT_PADDING,
+            text=self.SPLASH_TITLE,
+            fill=self.SPLASH_TEXT_COLOR,
+            font=titleFont
+            )
+        subtitleID = self.canvas.create_text(
+            (self.canvas.winfo_screenwidth() / 2),
+            (self.canvas.winfo_screenheight() / 2) + (self.splash.height() / 2) + self.SPLASH_TEXT_PADDING,
+            text=self.SPLASH_SUBTITLE,
+            fill=self.SPLASH_TEXT_COLOR,
+            font=subtitleFont
+            )
+
+        self.splashElements = [splashID, titleID, subtitleID]
+
+    def removeSplash(self):
+        for element in self.splashElements:
+            self.canvas.delete(element)
+        
+        self.splashElements = []
+
     def createImageBuffer(self, startIndex=0):
         # Create buffer and load images according to configured size
         self.images = [None] * self.BUFFER_SIZE
@@ -160,6 +211,8 @@ class Reader(tk.Frame):
         self.initData(newDirectory)
 
         # Update the UI to reflect the new data
+        self.removeSplash()
+        self.drawBackground()
         self.image = self.renderImage(0)
         self.pagesLabel['text'] = self._createPagesText()
 
@@ -215,7 +268,7 @@ class Reader(tk.Frame):
 
         
         # Create widgets
-        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
+        bg = self.drawBackground()
         
         # Load images @ correct size
         leftImageIndex = min(len(self.mangaFiles) - 1, self.imageIndex + 1)
