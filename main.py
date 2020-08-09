@@ -13,11 +13,6 @@ from gui.DirSelect import DirSelect
 from gui.Logo import Logo
 from gui.Reader import Reader
 
-def onSelectCallback(mangaDir):
-    global reader
-    print('Here goes nothing!')
-    reader.updateDirectory(mangaDir)
-
 
 def removeWidget(widget):
     if widget and widget.pack_forget:
@@ -34,21 +29,6 @@ def initRoot():
     root.bind("<Key>", lambda e: quit() if e.keycode == KEY_ESC else None)
 
     return root
-
-
-def initSelectGUI(root, directory='~'):
-    guiParent = tk.Frame(root)
-    guiParent.configure(bg=BACKGROUND_COLOR)
-
-    # Wire up the select section guy
-    select = DirSelect(guiParent, directorySelectCallback=onSelectCallback, directory=directory)
-    select.pack()
-
-    # Add the logo :)
-    logo = Logo(guiParent, path=os.path.join(IMG_PATH, IMG_FILE))
-    logo.pack()
-
-    return guiParent
 
 
 def initReader(root, imageDir, dirSelectWidget):
@@ -81,47 +61,42 @@ def loadConfig():
 
     # Read fields from config if present
     global DEFAULT_DIRECTORY
+    global BACKGROUND_COLOR
+
     if data[CONFIG_DEFAULT_DIRECTORY_FLAG]:
         DEFAULT_DIRECTORY = data[CONFIG_DEFAULT_DIRECTORY_FLAG]
+    if data[BACKGROUND_COLOR_FLAG]:
+        BACKGROUND_COLOR = data[BACKGROUND_COLOR_FLAG]
 
 
 
 KEY_ESC = 3473435
 KEY_SHIFT_Q = 81
 
-BACKGROUND_COLOR = '#5c5c5c'
-
 IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
 
 CONFIG_FILE = 'config.json'
+
 DEFAULT_DIRECTORY = '~'
 CONFIG_DEFAULT_DIRECTORY_FLAG = 'defaultDirectory'
 
+BACKGROUND_COLOR = '#5c5c5c'
+BACKGROUND_COLOR_FLAG = 'backgroundColor'
+
 
 loadConfig()
-print(DEFAULT_DIRECTORY)
-
+print(f'Config loaded from : {DEFAULT_DIRECTORY}')
 
 # Set up the root
 root = initRoot()  
 
-# Store our widgets in variables
+# Create the reader
 reader = initReader(root, os.path.join('res', 'demo'), DirSelect)
-
-# Begin by showing the directory select
 reader.pack()
-
 
 # Get rocking!
 root.mainloop()
 
-
-
-
-
-
-
-print('Running...')
 
 
