@@ -59,9 +59,6 @@ class Reader(tk.Frame):
         self.imageIndex = -1
         self.mangaFiles = []
 
-        # self.initData(directory)
-        # self.image = self.renderImage(0)
-
         self.pagesLabel = tk.Label(leftMargin, text='N/A')
         self.pagesLabel.pack()
 
