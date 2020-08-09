@@ -31,8 +31,8 @@ def initRoot():
     return root
 
 
-def initReader(root, imageDir, dirSelectWidget):
-    reader = Reader(root, imageDir=imageDir, directoryPicker=dirSelectWidget)
+def initReader(root, imageDir, dirSelectWidget, bg):
+    reader = Reader(root, imageDir=imageDir, directoryPicker=dirSelectWidget, bg=bg)
     
     return reader
 
@@ -92,7 +92,7 @@ print(f'Config loaded from : {DEFAULT_DIRECTORY}')
 root = initRoot()  
 
 # Create the reader
-reader = initReader(root, os.path.join('res', 'demo'), DirSelect)
+reader = initReader(root, os.path.join('res', 'demo'), DirSelect, BACKGROUND_COLOR)
 reader.pack()
 
 # Get rocking!

@@ -17,7 +17,6 @@ class Reader(tk.Frame):
     KEY_X = 458872
     KEY_M = 3014765
 
-    BACKGROUND_COLOR = '#5c5c5c'
     IMAGE_HEIGHT_SCALE = 1.8
     IMAGE_HEIGHT_DELTA = 0.2
     SCROLL_SPEED = 10
@@ -28,10 +27,12 @@ class Reader(tk.Frame):
         directory = '~'
         self.directoryPicker = None
         dirSelectWidget = None
+        self.backgroundColor = None
 
         try:
             directory = kwargs.pop('imageDir')
             dirSelectWidget = kwargs.pop('directoryPicker')
+            self.backgroundColor = kwargs.pop('bg', '#000000')
         except Exception as e:
             print(str(e))
             exit()
@@ -47,7 +48,7 @@ class Reader(tk.Frame):
         self.spreadElements = []
 
         self.canvas = tk.Canvas(self.parent, bd=0, highlightthickness=0)
-        self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.BACKGROUND_COLOR)
+        self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
 
         frame = tk.Frame(self.canvas)
         
@@ -214,7 +215,7 @@ class Reader(tk.Frame):
 
         
         # Create widgets
-        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.BACKGROUND_COLOR)
+        bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
         
         # Load images @ correct size
         leftImageIndex = min(len(self.mangaFiles) - 1, self.imageIndex + 1)
