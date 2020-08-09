@@ -440,6 +440,8 @@ class RecentsDialog(tk.Toplevel):
 
 
 class DirSelect(tk.Frame):
+    RECENTS_FILE = 'recents.txt'
+
     def __init__(self, parent, *args, **kwargs):
         try:
             self.directorySelectCallback = kwargs.pop('directorySelectCallback')
@@ -451,6 +453,9 @@ class DirSelect(tk.Frame):
 
         sizex = kwargs.pop('sizex', 80)
         sizey = kwargs.pop('sizey', 60)
+
+        # Load recents
+        self.recents = self.loadRecents(self.RECENTS_FILE)
         
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
@@ -476,8 +481,36 @@ class DirSelect(tk.Frame):
 
         self.root.pack()
 
+    def saveRecentDir(self, mangaDir, recentsPath=RECENTS_FILE):
+        if mangaDir in self.recents:
+            # move it up the heirarchy
+            index = self.recents.index(mangaDir)
+
+            self.recents = [mangaDir] + self.recents[:index] + self.recents[(index + 1):]
+        else:
+            # insert at front and re-assign
+            if len(self.recents) > 5:
+                self.recents = self.recents[:-1]
+            self.recents.insert(0, mangaDir)
+
+        
+        # now we save
+        print('Writing: ' + str(self.recents))
+        with open(recentsPath, 'w') as fout:
+            for line in self.recents:
+                fout.write(str(line) + '\n')
+                
+
+    def loadRecents(self, recentsPath=RECENTS_FILE):
+        loadedRecents = []
+
+        with open(recentsPath, 'r') as fin:
+            loadedRecents = fin.read().splitlines()
+
+        return loadedRecents
+
     def openRecentsSelect(self):
-        x = RecentsDialog(self.parent, recents, self.onDirectorySelect)
+        dialog = RecentsDialog(self.parent, self.recents, self.onDirectorySelect)
         
 
     def openDirectorySelect(self):
@@ -499,7 +532,7 @@ class DirSelect(tk.Frame):
 
     def onDirectorySelect(self, directory):
         print('Saving recent dir')
-        saveRecentDir(directory)
+        self.saveRecentDir(directory, self.RECENTS_FILE)
         print('executing read callback!')
         self.directorySelectCallback(directory)
 
@@ -581,35 +614,6 @@ def loadConfig():
         DEFAULT_DIRECTORY = data[CONFIG_DEFAULT_DIRECTORY_FLAG]
 
 
-def saveRecentDir(mangaDir):
-    global recents
-
-    if mangaDir in recents:
-        # move it up the heirarchy
-        index = recents.index(mangaDir)
-
-        recents = [mangaDir] + recents[:index] + recents[(index + 1):]
-    else:
-        # insert at front and re-assign
-        if len(recents) > 5:
-            recents = recents[:-1]
-        recents.insert(0, mangaDir)
-
-    
-    # now we save
-    print('Writing: ' + str(recents))
-    with open(RECENTS_FILE, 'w') as fout:
-        for line in recents:
-            fout.write(str(line) + '\n')
-            
-
-def loadRecents():
-    recents = []
-
-    with open(RECENTS_FILE, 'r') as fin:
-        recents = fin.read().splitlines()
-
-    return recents
 
 KEY_ESC = 3473435
 KEY_SHIFT_Q = 81
@@ -629,15 +633,11 @@ IMG_PATH = os.path.join('res',)
 IMG_FILE = 'logo.jpg'
 
 CONFIG_FILE = 'config.json'
-RECENTS_FILE = 'recents.txt'
 DEFAULT_DIRECTORY = '~'
 CONFIG_DEFAULT_DIRECTORY_FLAG = 'defaultDirectory'
 
 
-recents = loadRecents()
-
 loadConfig()
-loadRecents()
 print(DEFAULT_DIRECTORY)
 
 
