@@ -21,6 +21,10 @@ class Reader(tk.Frame):
     SPLASH_SIZE = 500
     SPLASH_TITLE = "Manga Reader"
     SPLASH_SUBTITLE = "Please Select a Directory"
+    SPLASH_TITLE_FONT = "SignPainter"
+    SPLASH_SUBTITLE_FONT = "Avenir"
+    SPLASH_TITLE_SIZE = 60
+    SPLASH_SUBTITLE_SIZE = 24
     SPLASH_TEXT_PADDING = 80
     SPLASH_TEXT_COLOR = "#FFF"
 
@@ -138,8 +142,8 @@ class Reader(tk.Frame):
         splashID = self.canvas.create_image(xpos, ypos, image=self.splash, anchor='nw')
 
         # Render some sick text
-        titleFont = tkfont.Font(family="Helvetica", size=40, weight="bold")
-        subtitleFont = tkfont.Font(family="Helvetica", size = 20)
+        titleFont = tkfont.Font(family=self.SPLASH_TITLE_FONT, size=self.SPLASH_TITLE_SIZE, weight="bold")
+        subtitleFont = tkfont.Font(family=self.SPLASH_SUBTITLE_FONT, size=self.SPLASH_SUBTITLE_SIZE)
 
         titleID = self.canvas.create_text(
             (self.canvas.winfo_screenwidth() / 2),
