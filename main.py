@@ -292,7 +292,7 @@ class Reader(tk.Frame):
     def loadMangaImage(self, index, heightScale=IMAGE_HEIGHT_SCALE):
         # Load the image, it's not cached
         imageName = self.mangaFiles[index]
-        load = Image.open(join(self.imageDir, imageName))
+        load = self.loadImageFromPath(join(self.imageDir, imageName))
 
         # Scale up image if it's kind of small
         resized = self.scaleImage(load, heightScale)
@@ -300,6 +300,9 @@ class Reader(tk.Frame):
         resized.thumbnail((self.imageHeight, self.imageHeight), Image.ANTIALIAS)
         return ImageTk.PhotoImage(resized)
 
+
+    def loadImageFromPath(self, imagePath):
+        return Image.open(imagePath)
 
     def scaleImage(self, image, ratio=IMAGE_HEIGHT_SCALE):
         width, height = (None, None)
@@ -310,7 +313,7 @@ class Reader(tk.Frame):
             width = int(image.width())
             height = int(image.height())
 
-        scale = (self.parentHeight / height) * ratio
+        scale = (self.canvas.winfo_height() / height) * ratio
         newWidth = int(width * scale)
         newHeight = int(height * scale)
 
