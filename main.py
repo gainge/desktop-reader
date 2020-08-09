@@ -203,7 +203,7 @@ class Reader(tk.Frame):
 
 
     def showSpreadPage(self):
-        if self.imageIndex >= len(self.mangaFiles) - 1:
+        if self.imageIndex >= len(self.mangaFiles) or len(self.mangaFiles) == 1:
             return # Don't mess with edge cases and w/e
 
         
@@ -211,8 +211,9 @@ class Reader(tk.Frame):
         bg = self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=BACKGROUND_COLOR)
         
         # Load images @ correct size
-        self.leftImage = self.loadMangaImage(self.imageIndex + 1, 1)
-        self.rightImage = self.loadMangaImage(self.imageIndex, 1)
+        leftImageIndex = min(len(self.mangaFiles) - 1, self.imageIndex + 1)
+        self.leftImage = self.loadMangaImage(leftImageIndex, 1)
+        self.rightImage = self.loadMangaImage(leftImageIndex - 1, 1)
         
         # Display and store
         width = self.parent.winfo_width()
