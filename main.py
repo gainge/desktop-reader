@@ -203,7 +203,7 @@ class Reader(tk.Frame):
 
 
     def showSpreadPage(self):
-        if self.imageIndex >= len(self.mangaFiles):
+        if self.imageIndex >= len(self.mangaFiles) - 1:
             return # Don't mess with edge cases and w/e
 
         
