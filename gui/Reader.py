@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import os
 from os import listdir
 from os.path import isfile, isdir, join
@@ -102,31 +103,6 @@ class Reader(tk.Frame):
         self.canvas.pack(fill='both', expand=True)
 
 
-    def initData(self, directory):
-        if not isdir(directory):
-            return
-        # Otherwise we're good to go!
-        self.imageDir = directory
-        self.imageIndex = 0
-
-        # Load files in directory
-        mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
-        mangaFiles.sort()
-
-        self.mangaFiles = mangaFiles
-        
-        # Check for too small of a buffer :P
-        if self.BUFFER_SIZE > len(mangaFiles):
-            self.BUFFER_SIZE = ((len(mangaFiles) // 2) * 2) + (len(mangaFiles) % 2)
-            
-            # Assert odd parity
-            assert self.BUFFER_SIZE % 2 == 1
-
-            self.PRELOAD_WINDOW = self.BUFFER_SIZE // 2
-
-        self.createImageBuffer(self.imageIndex)
-
-
     def drawBackground(self):
         return self.canvas.create_rectangle(0, 0, self.canvas.winfo_screenwidth(), self.canvas.winfo_screenheight(), fill=self.backgroundColor)
 
@@ -168,7 +144,32 @@ class Reader(tk.Frame):
         
         self.splashElements = []
 
+
+    def loadMangaFiles(self, directory):
+        if not isdir(directory):
+            return
+
+        # Otherwise we're good to go!
+        self.imageDir = directory
+
+        # Load files in directory
+        mangaFiles = [f for f in listdir(self.imageDir) if isfile(join(self.imageDir, f)) and (fnmatch.fnmatch(f, '*.png') or fnmatch.fnmatch(f, '*.jpg'))]
+        mangaFiles.sort()
+
+        self.mangaFiles = mangaFiles
+
     def createImageBuffer(self, startIndex=0):
+        self.imageIndex = 0
+
+        # Tweak buffer size if applicable
+        if self.BUFFER_SIZE > len(self.mangaFiles):
+            self.BUFFER_SIZE = ((len(self.mangaFiles) // 2) * 2) + (len(self.mangaFiles) % 2)
+            
+            # Assert odd parity
+            assert self.BUFFER_SIZE % 2 == 1
+
+            self.PRELOAD_WINDOW = self.BUFFER_SIZE // 2
+
         # Create buffer and load images according to configured size
         self.images = [None] * self.BUFFER_SIZE
 
@@ -212,7 +213,13 @@ class Reader(tk.Frame):
             return
         
         # Initialize our data members required for reading
-        self.initData(newDirectory)
+        self.loadMangaFiles(newDirectory)
+
+        if len(self.mangaFiles) <= 0:
+            messagebox.showerror('Select Directory', 'No Image Files were found!')
+            return
+
+        self.createImageBuffer()
 
         # Update the UI to reflect the new data
         self.removeSplash()
