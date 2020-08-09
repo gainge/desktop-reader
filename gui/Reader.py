@@ -56,10 +56,13 @@ class Reader(tk.Frame):
         rightMargin = tk.Frame(self.canvas)
 
         # Init widget state and data
-        self.initData(directory)
-        self.image = self.renderImage(0)
+        self.imageIndex = -1
+        self.mangaFiles = []
 
-        self.pagesLabel = tk.Label(leftMargin, text=self._createPagesText())
+        # self.initData(directory)
+        # self.image = self.renderImage(0)
+
+        self.pagesLabel = tk.Label(leftMargin, text='N/A')
         self.pagesLabel.pack()
 
         self.pageEntry = tk.Entry(leftMargin, width=8)
@@ -210,7 +213,7 @@ class Reader(tk.Frame):
 
 
     def showSpreadPage(self):
-        if self.imageIndex >= len(self.mangaFiles) or len(self.mangaFiles) == 1:
+        if self.imageIndex < 0 or self.imageIndex >= len(self.mangaFiles) or len(self.mangaFiles) <= 1:
             return # Don't mess with edge cases and w/e
 
         
